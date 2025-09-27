@@ -33,8 +33,18 @@ RUN pip3 install --upgrade pip
 # Envs
 ENV NUMBA_CACHE_DIR=/tmp
 
-WORKDIR /workspace
-COPY requirements.txt .
-
 # Install requiremqnts
+COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+
+# Source
+RUN mkdir /app
+WORKDIR /app
+COPY . .
+RUN chown -R 1000:root .
+
+ENTRYPOINT ["python3", \
+            "dreamer.py", \
+            "--configs", "dmc_proprio", \
+            "--task", "dmc_walker_walk", \
+            "--logdir", "./logdir/dmc_walker_walk"]
