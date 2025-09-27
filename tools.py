@@ -16,6 +16,8 @@ from torch.nn import functional as F
 from torch import distributions as torchd
 from torch.utils.tensorboard import SummaryWriter
 
+import wandb
+
 
 to_np = lambda x: x.detach().cpu().numpy()
 
@@ -55,7 +57,7 @@ class TimeRecording:
 
 
 class Logger:
-    def __init__(self, logdir, step):
+    def __init__(self, logdir, step, output='wandb'):
         self._logdir = logdir
         self._writer = SummaryWriter(log_dir=str(logdir), max_queue=1000)
         self._last_step = None
@@ -64,6 +66,9 @@ class Logger:
         self._images = {}
         self._videos = {}
         self.step = step
+        self.output = output
+        if output == 'wandb':
+            wandb.init(name=str(logdir))
 
     def scalar(self, name, value):
         self._scalars[name] = float(value)
@@ -91,14 +96,17 @@ class Logger:
         for name, value in self._images.items():
             self._writer.add_image(name, value, step)
         for name, value in self._videos.items():
-            name = name if isinstance(name, str) else name.decode("utf-8")
-            if np.issubdtype(value.dtype, np.floating):
-                value = np.clip(255 * value, 0, 255).astype(np.uint8)
-            B, T, H, W, C = value.shape
-            value = value.transpose(1, 4, 2, 0, 3).reshape((1, T, C, H, B * W))
-            self._writer.add_video(name, value, step, 16)
-
+            self._writer.add_video(name, self._format_video(value), step, 16)
         self._writer.flush()
+
+        if self.output == 'wandb':
+            log_dict = dict(scalars)
+            for name, value in self._images.items():
+                log_dict[name] = wandb.Image(value)
+            for name, value in self._videos.items():
+                log_dict[name] = wandb.Video(self._format_video(value), fps=16, format="mp4")
+            wandb.log(log_dict, step=step)
+
         self._scalars = {}
         self._images = {}
         self._videos = {}
@@ -113,6 +121,13 @@ class Logger:
         self._last_time += duration
         self._last_step = step
         return steps / duration
+    
+    def _format_video(self, value, output=None):
+        if np.issubdtype(value.dtype, np.floating):
+            value = np.clip(255 * value, 0, 255).astype(np.uint8)
+        B, T, H, W, C = value.shape
+        value = value.transpose(1, 4, 2, 0, 3).reshape((1, T, C, H, B * W))
+        return value
 
     def offline_scalar(self, name, value, step):
         self._writer.add_scalar("scalars/" + name, value, step)

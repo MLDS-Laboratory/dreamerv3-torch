@@ -32,6 +32,7 @@ RUN pip3 install --upgrade pip
 
 # Envs
 ENV NUMBA_CACHE_DIR=/tmp
+ENV WANDB_PROJECT=dreamer
 
 # Install requiremqnts
 COPY requirements.txt requirements.txt
