@@ -1,8 +1,8 @@
-import gym
+import gymnasium as gym
 import numpy as np
 
 
-class DeepMindControl:
+class DeepMindControl(gym.Env):
     metadata = {}
 
     def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, seed=0):
@@ -62,7 +62,7 @@ class DeepMindControl:
         info = {"discount": np.array(time_step.discount, np.float32)}
         return obs, reward, done, info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         time_step = self._env.reset()
         obs = dict(time_step.observation)
         obs = {key: [val] if len(val.shape) == 0 else val for key, val in obs.items()}
