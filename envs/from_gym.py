@@ -16,7 +16,7 @@ class RiskyCartPoleEnv(CartPoleEnv):
         violation = x_position > 0.01
         if violation:
             reward += 10.0 * np.random.randn()
-        info['is_violation'] = violation
+        info['log_violation'] = violation
         return obs, reward, done, truncated, info
     
 class RiskyInvertedPendulumEnv(InvertedPendulumEnv):
@@ -27,9 +27,10 @@ class RiskyInvertedPendulumEnv(InvertedPendulumEnv):
         obs, reward, done, truncated, info = super().step(action)
         x_position = obs[0]
         violation = x_position > 0.01
+
         if violation:
             reward += 10.0 * np.random.randn()
-        info['is_violation'] = violation
+        info['log_violation'] = violation
         return obs, reward, done, truncated, info
     
 class RiskySwimmerEnv(SwimmerEnv):
@@ -42,7 +43,7 @@ class RiskySwimmerEnv(SwimmerEnv):
         violation = x_position > 0.5
         if violation:
             reward += 10.0 * np.random.randn()
-        info['is_violation'] = violation
+        info['log_violation'] = violation
         return obs, reward, done, truncated, info
     
 class RiskyHalfCheetahEnv(HalfCheetahEnv):
@@ -55,7 +56,7 @@ class RiskyHalfCheetahEnv(HalfCheetahEnv):
         violation = x_position < -3
         if violation:
             reward += 10.0 * np.random.randn()
-        info['is_violation'] = violation
+        info['log_violation'] = violation
         return obs, reward, done, truncated, info
     
 register(
