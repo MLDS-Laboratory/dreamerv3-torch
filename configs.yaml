@@ -18,6 +18,7 @@ defaults:
   precision: 32
   debug: False
   video_pred_log: True
+  algorithm: 'dreamer'
 
   # Environment
   task: 'dmc_walker_walk'
@@ -75,6 +76,7 @@ defaults:
   # Behavior.
   discount: 0.997
   discount_lambda: 0.95
+  mvpi_lambda: 0.5
   imag_horizon: 15
   imag_gradient: 'dynamics'
   imag_gradient_mix: 0.0

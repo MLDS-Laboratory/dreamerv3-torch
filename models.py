@@ -372,6 +372,9 @@ class ImagBehavior(nn.Module):
         else:
             discount = self._config.discount * torch.ones_like(reward)
         value = self.value(imag_feat).mode()
+        if self._config.algorithm == 'mvpi-dreamer':
+            y = reward.mean(1, keepdim=True)
+            reward = reward - self._config.mvpi_lambda * reward ** 2 + 2 * self._config.mvpi_lambda * reward * y
         target = tools.lambda_return(
             reward[1:],
             value[:-1],
