@@ -152,6 +152,12 @@ def make_env(config, mode, id):
             task, config.action_repeat, config.size, seed=config.seed + id
         )
         env = wrappers.NormalizeActions(env)
+    elif suite == "gym":
+        from envs.from_gym import FromGym
+        
+        env = FromGym(
+            task, size=config.size, seed=config.seed + id
+        )
     elif suite == "atari":
         import envs.atari as atari
 
