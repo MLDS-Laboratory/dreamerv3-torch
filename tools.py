@@ -103,8 +103,8 @@ class Logger:
             log_dict = dict(scalars)
             for name, value in self._images.items():
                 log_dict[name] = wandb.Image(value)
-            for name, value in self._videos.items():
-                log_dict[name] = wandb.Video(self._format_video(value), fps=16, format="mp4")
+            # for name, value in self._videos.items():
+            #     log_dict[name] = wandb.Video(self._format_video(value), fps=16, format="mp4")
             wandb.log(log_dict, step=step)
 
         self._scalars = {}
