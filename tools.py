@@ -224,9 +224,8 @@ def simulate(
                 # record logs given from environments
                 for key in list(cache[envs[i].id].keys()):
                     if "log_" in key:
-                        logger.scalar(
-                            key, float(np.array(cache[envs[i].id][key]).sum())
-                        )
+                        logger.scalar(f"{key}_sum", float(np.array(cache[envs[i].id][key]).sum()))
+                        logger.scalar(f"{key}_avg", float(np.array(cache[envs[i].id][key]).mean()))
                         # log items won't be used later
                         cache[envs[i].id].pop(key)
 
