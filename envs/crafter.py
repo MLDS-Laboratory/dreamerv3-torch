@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 
 
-class Crafter:
+class Crafter(gym.Env):
     metadata = {}
 
     def __init__(self, task, size=(64, 64), seed=0):
@@ -19,9 +19,9 @@ class Crafter:
             "image": gym.spaces.Box(
                 0, 255, self._env.observation_space.shape, dtype=np.uint8
             ),
-            "is_first": gym.spaces.Box(-np.inf, np.inf, (1,), dtype=np.uint8),
-            "is_last": gym.spaces.Box(-np.inf, np.inf, (1,), dtype=np.uint8),
-            "is_terminal": gym.spaces.Box(-np.inf, np.inf, (1,), dtype=np.uint8),
+            "is_first": gym.spaces.Box(0, 1, (1,), dtype=np.uint8),
+            "is_last": gym.spaces.Box(0, 1, (1,), dtype=np.uint8),
+            "is_terminal": gym.spaces.Box(0, 1, (1,), dtype=np.uint8),
             "log_reward": gym.spaces.Box(-np.inf, np.inf, (1,), dtype=np.float32),
         }
         spaces.update(
@@ -37,7 +37,7 @@ class Crafter:
     @property
     def action_space(self):
         action_space = self._env.action_space
-        action_space.discrete = True
+        action_space = gym.spaces.Discrete(action_space.n)
         return action_space
 
     def step(self, action):
@@ -60,7 +60,7 @@ class Crafter:
     def render(self):
         return self._env.render()
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         image = self._env.reset()
         obs = {
             "image": image,
