@@ -19,6 +19,7 @@ defaults:
   debug: False
   video_pred_log: True
   algorithm: 'dreamer'
+  output: 'wandb'
 
   # Environment
   task: 'dmc_walker_walk'
