@@ -1,9 +1,37 @@
 import gymnasium as gym
 import numpy as np
 from gymnasium.envs.registration import register
+from gymnasium.envs.classic_control.cartpole import CartPoleEnv
+from gymnasium.envs.mujoco.inverted_pendulum_v5 import InvertedPendulumEnv
 from gymnasium.envs.mujoco.swimmer_v5 import SwimmerEnv
+from gymnasium.envs.mujoco.half_cheetah_v5 import HalfCheetahEnv
 
+class RiskyCartPoleEnv(CartPoleEnv):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+    def step(self, action):
+        obs, reward, done, truncated, info = super().step(action)
+        x_position = obs[0]
+        violation = x_position > 0.01
+        if violation:
+            reward += 10.0 * np.random.randn()
+        info['is_violation'] = violation
+        return obs, reward, done, truncated, info
+    
+class RiskyInvertedPendulumEnv(InvertedPendulumEnv):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def step(self, action):
+        obs, reward, done, truncated, info = super().step(action)
+        x_position = obs[0]
+        violation = x_position > 0.01
+        if violation:
+            reward += 10.0 * np.random.randn()
+        info['is_violation'] = violation
+        return obs, reward, done, truncated, info
+    
 class RiskySwimmerEnv(SwimmerEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -14,12 +42,39 @@ class RiskySwimmerEnv(SwimmerEnv):
         violation = x_position > 0.5
         if violation:
             reward += 10.0 * np.random.randn()
-        info['log_violation'] = violation
+        info['is_violation'] = violation
+        return obs, reward, done, truncated, info
+    
+class RiskyHalfCheetahEnv(HalfCheetahEnv):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def step(self, action):
+        obs, reward, done, truncated, info = super().step(action)
+        x_position = info['x_position']
+        violation = x_position < -3
+        if violation:
+            reward += 10.0 * np.random.randn()
+        info['is_violation'] = violation
         return obs, reward, done, truncated, info
     
 register(
+    id="RiskyCartPole-v0",
+    entry_point=RiskyCartPoleEnv
+)
+register(
     id="RiskySwimmer-v0",
     entry_point=RiskySwimmerEnv,
+    max_episode_steps=1000
+)
+register(
+    id="RiskyHalfCheetah-v0",
+    entry_point=RiskyHalfCheetahEnv,
+    max_episode_steps=1000
+)
+register(
+    id="RiskyInvertedPendulum-v0",
+    entry_point=RiskyInvertedPendulumEnv,
     max_episode_steps=1000
 )
 
