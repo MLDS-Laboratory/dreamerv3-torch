@@ -420,7 +420,7 @@ class ImagBehavior(nn.Module):
         diff = diff * x
         cumsum_diff = diff + torch.sum(diff) - torch.cumsum(diff, axis=-1)
         coef = 2. * cumsum_diff + sort_returns[:-1] - sort_returns[-1]
-        gini_loss = -1 * sort_sum_log_prob[:-1] * coef.detach()
+        gini_loss = -sort_sum_log_prob[:-1] * coef.detach()
         return gini_loss
 
     def _compute_actor_loss(
