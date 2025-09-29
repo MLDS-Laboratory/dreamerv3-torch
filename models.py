@@ -313,6 +313,15 @@ class ImagBehavior(nn.Module):
                 )
                 actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
                 actor_loss = torch.mean(actor_loss)
+                if self._config.algorithm == 'mg-dreamer':
+                    gini_loss = self._compute_gini_loss(
+                        imag_feat,
+                        imag_action,
+                        target,
+                        weights
+                    )
+                    gini_loss = torch.mean(gini_loss)
+                    actor_loss += self._config.mg_lambda * gini_loss
                 metrics.update(mets)
                 value_input = imag_feat
 
@@ -387,6 +396,32 @@ class ImagBehavior(nn.Module):
             torch.cat([torch.ones_like(discount[:1]), discount[:-1]], 0), 0
         ).detach()
         return target, weights, value[:-1]
+    
+    def _compute_gini_loss(
+        self,
+        imag_feat,
+        imag_action,
+        target,
+        weights
+    ):
+        inp = imag_feat.detach()
+        policy = self.actor(inp)
+        # Q-val for actor is not transformed using symlog
+        target = torch.stack(target, dim=1)
+        sort_returns, indices = torch.sort(target[0, :], descending=False)
+        sort_returns = sort_returns.squeeze()
+        sample_size = sort_returns.shape[0]
+        sum_log_prob = torch.sum(weights[:-1] * policy.log_prob(imag_action)[:-1][:, :, None], dim=0)
+        sort_sum_log_prob = sum_log_prob[indices].squeeze()
+
+        diff = sort_returns[1:] - sort_returns[:-1]
+        x = torch.linspace(1., sample_size - 1, sample_size - 1)
+        x = x / sample_size
+        diff = diff * x
+        cumsum_diff = diff + torch.sum(diff) - torch.cumsum(diff, axis=-1)
+        coef = 2. * cumsum_diff + sort_returns[:-1] - sort_returns[-1]
+        gini_loss = -1 * sort_sum_log_prob[:-1] * coef.detach()
+        return gini_loss
 
     def _compute_actor_loss(
         self,
