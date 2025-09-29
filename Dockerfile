@@ -34,6 +34,10 @@ RUN pip3 install --upgrade pip
 ENV NUMBA_CACHE_DIR=/tmp
 ENV WANDB_PROJECT=dreamer
 
+# Install NovGrid
+RUN git clone https://github.com/eilab-gt/NovGrid.git
+RUN cd NovGrid && pip install -e .
+
 # Install requiremqnts
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
