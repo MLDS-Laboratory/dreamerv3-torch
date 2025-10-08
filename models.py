@@ -24,6 +24,14 @@ class RewardEMA:
         scale = torch.clip(ema_vals[1] - ema_vals[0], min=1.0)
         offset = ema_vals[0]
         return offset.detach(), scale.detach()
+    
+    def predict(self, x, ema_vals):
+        flat_x = torch.flatten(x.detach())
+        x_quantile = torch.quantile(flat_x, q=self.range)
+        ema_vals = self.alpha * x_quantile + (1 - self.alpha) * ema_vals
+        scale = torch.clip(ema_vals[1] - ema_vals[0], min=1.0)
+        offset = ema_vals[0]
+        return offset.detach(), scale.detach()
 
 
 class WorldModel(nn.Module):
@@ -313,8 +321,9 @@ class ImagBehavior(nn.Module):
                 )
                 actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
                 actor_loss = torch.mean(actor_loss)
+                metrics.update(mets)
                 if self._config.algorithm == 'mg-dreamer':
-                    gini_loss = self._compute_gini_loss(
+                    gini_loss, mets = self._compute_gini_loss(
                         imag_feat,
                         imag_action,
                         target,
@@ -322,7 +331,7 @@ class ImagBehavior(nn.Module):
                     )
                     gini_loss = torch.mean(gini_loss)
                     actor_loss += self._config.mg_lambda * gini_loss
-                metrics.update(mets)
+                    metrics.update(mets)
                 value_input = imag_feat
 
         with tools.RequiresGrad(self.value):
@@ -403,11 +412,15 @@ class ImagBehavior(nn.Module):
         imag_action,
         target,
         weights
-    ):
+    ):  
+        metrics = {}
         inp = imag_feat.detach()
         policy = self.actor(inp)
         # Q-val for actor is not transformed using symlog
         target = torch.stack(target, dim=1)
+        if self._config.reward_EMA:
+            offset, scale = self.reward_ema.predict(target, self.ema_vals)
+            target = (target - offset) / scale
         sort_returns, indices = torch.sort(target[0, :], descending=False)
         sort_returns = sort_returns.squeeze()
         sample_size = sort_returns.shape[0]
@@ -415,13 +428,14 @@ class ImagBehavior(nn.Module):
         sort_sum_log_prob = sum_log_prob[indices].squeeze()
 
         diff = sort_returns[1:] - sort_returns[:-1]
-        x = torch.linspace(1., sample_size - 1, sample_size - 1)
+        x = torch.linspace(1., sample_size - 1, sample_size - 1).to(diff.device)
         x = x / sample_size
         diff = diff * x
         cumsum_diff = diff + torch.sum(diff) - torch.cumsum(diff, axis=-1)
         coef = 2. * cumsum_diff + sort_returns[:-1] - sort_returns[-1]
         gini_loss = -sort_sum_log_prob[:-1] * coef.detach()
-        return gini_loss
+        metrics['gini_loss'] = to_np(torch.mean(gini_loss))
+        return gini_loss, metrics
 
     def _compute_actor_loss(
         self,
