@@ -1,6 +1,7 @@
 import copy
 import torch
 from torch import nn
+import numpy as np
 
 import networks
 import tools
@@ -433,7 +434,8 @@ class ImagBehavior(nn.Module):
         diff = diff * x
         cumsum_diff = diff + torch.sum(diff) - torch.cumsum(diff, axis=-1)
         coef = 2. * cumsum_diff + sort_returns[:-1] - sort_returns[-1]
-        gini_loss = -sort_sum_log_prob[:-1] * coef.detach()
+        n_trans = np.prod(target.shape)
+        gini_loss = -sort_sum_log_prob[:-1] * coef.detach() / n_trans
         metrics['gini_loss'] = to_np(torch.mean(gini_loss))
         return gini_loss, metrics
 
