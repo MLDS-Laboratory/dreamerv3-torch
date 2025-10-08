@@ -152,6 +152,12 @@ def make_env(config, mode, id):
             task, config.action_repeat, config.size, seed=config.seed + id
         )
         env = wrappers.NormalizeActions(env)
+    elif suite == "rwc":
+        import envs.rwc as rwc
+
+        env = rwc.RealWorldControl(
+            task, config.action_repeat, config.size, seed=config.seed + id
+        )
     elif suite == "gym":
         from envs.from_gym import FromGym
         
