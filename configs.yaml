@@ -79,6 +79,7 @@ defaults:
   discount_lambda: 0.95
   mvpi_lambda: 0.5
   mg_lambda: 1.0
+  beta: -0.001
   imag_horizon: 15
   imag_gradient: 'dynamics'
   imag_gradient_mix: 0.0

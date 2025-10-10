@@ -394,14 +394,25 @@ class ImagBehavior(nn.Module):
         if self._config.algorithm == 'mvpi-dreamer':
             y = reward.mean(1, keepdim=True)
             reward = reward - self._config.mvpi_lambda * reward ** 2 + 2 * self._config.mvpi_lambda * reward * y
-        target = tools.lambda_return(
-            reward[1:],
-            value[:-1],
-            discount[1:],
-            bootstrap=value[-1],
-            lambda_=self._config.discount_lambda,
-            axis=0,
-        )
+        if self._config.algorithm == 'exp-dreamer':
+            target = tools.exponential_lambda_return(
+                reward[1:],
+                value[:-1],
+                discount[1:],
+                bootstrap=value[-1],
+                lambda_=self._config.discount_lambda,
+                beta_=self._config.beta,
+                axis=0,
+            )
+        else:
+            target = tools.lambda_return(
+                reward[1:],
+                value[:-1],
+                discount[1:],
+                bootstrap=value[-1],
+                lambda_=self._config.discount_lambda,
+                axis=0,
+            )
         weights = torch.cumprod(
             torch.cat([torch.ones_like(discount[:1]), discount[:-1]], 0), 0
         ).detach()
@@ -479,6 +490,8 @@ class ImagBehavior(nn.Module):
         else:
             raise NotImplementedError(self._config.imag_gradient)
         actor_loss = -weights[:-1] * actor_target
+        if self._config.algorithm == 'exp-dreamer':
+            actor_loss *= np.sign(self._config.beta)
         return actor_loss, metrics
 
     def _update_slow_target(self):
