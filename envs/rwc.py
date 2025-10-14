@@ -125,30 +125,6 @@ env_configs = {
             "std": 0,
         },
     },
-    "cartpole_friction_low": {
-        "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 6,
-            "min": 6,
-            "max": 6,
-            "std": 0,
-        },
-    },
-    "cartpole_friction_high": {
-        "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 10,
-            "min": 10,
-            "max": 10,
-            "std": 0,
-        },
-    },
     "humanoid_friction_low": {
         "env_id": "humanoid_realworld_walk",
         "perturb_spec": {
@@ -173,56 +149,8 @@ env_configs = {
             "std": 0,
         },
     },
-    "quadruped_friction_low": {
-        "env_id": "quadruped_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 6,
-            "min": 6,
-            "max": 6,
-            "std": 0,
-        },
-    },
-    "quadruped_friction_high": {
-        "env_id": "quadruped_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 10,
-            "min": 10,
-            "max": 10,
-            "std": 0,
-        },
-    },
 
     # === Damping ===
-    "walker_damping_low": {
-        "env_id": "walker_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
-            "std": 0,
-        },
-    },
-    "walker_damping_high": {
-        "env_id": "walker_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
     "cartpole_damping_low": {
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
@@ -237,30 +165,6 @@ env_configs = {
     },
     "cartpole_damping_high": {
         "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
-    "humanoid_damping_low": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
-            "std": 0,
-        },
-    },
-    "humanoid_damping_high": {
-        "env_id": "humanoid_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "joint_damping",
