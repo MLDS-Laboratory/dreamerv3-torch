@@ -9,24 +9,24 @@ env_configs = {
             "enable": True,
             "param": "thigh_length",
             "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
+            "start": 0.5,
+            "min": 0.5,
+            "max": 0.5,
             "std": 0,
         },
     },
-    "walker_perturb_high": {
-        "env_id": "walker_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "thigh_length",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
+    # "walker_perturb_high": {
+    #     "env_id": "walker_realworld_walk",
+    #     "perturb_spec": {
+    #         "enable": True,
+    #         "param": "thigh_length",
+    #         "scheduler": "constant",
+    #         "start": 2,
+    #         "min": 2,
+    #         "max": 2,
+    #         "std": 0,
+    #     },
+    # },
     "cartpole_perturb_low": {
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
@@ -63,18 +63,18 @@ env_configs = {
             "std": 0,
         },
     },
-    "humanoid_perturb_high": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "head_size",
-            "scheduler": "constant",
-            "start": 0.3,
-            "min": 0.3,
-            "max": 0.3,
-            "std": 0,
-        },
-    },
+    # "humanoid_perturb_high": {
+    #     "env_id": "humanoid_realworld_walk",
+    #     "perturb_spec": {
+    #         "enable": True,
+    #         "param": "head_size",
+    #         "scheduler": "constant",
+    #         "start": 0.3,
+    #         "min": 0.3,
+    #         "max": 0.3,
+    #         "std": 0,
+    #     },
+    # },
     "quadruped_perturb_low": {
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
@@ -87,18 +87,18 @@ env_configs = {
             "std": 0,
         },
     },
-    "quadruped_perturb_high": {
-        "env_id": "quadruped_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "shin_length",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
+    # "quadruped_perturb_high": {
+    #     "env_id": "quadruped_realworld_walk",
+    #     "perturb_spec": {
+    #         "enable": True,
+    #         "param": "shin_length",
+    #         "scheduler": "constant",
+    #         "start": 2,
+    #         "min": 2,
+    #         "max": 2,
+    #         "std": 0,
+    #     },
+    # },
 
     # === Friction ===
     "walker_friction_low": {
