@@ -121,7 +121,7 @@ class RealWorldControl(gym.Env):
                 env_kwargs["perturb_spec"]["min"] = perturb_value
                 env_kwargs["perturb_spec"]["max"] = perturb_value
             elif "noise_spec" in env_kwargs:
-                env_kwargs["noise_spec"]["gaussian"]["observation"] = perturb_value
+                env_kwargs["noise_spec"]["gaussian"]["observations"] = perturb_value
         domain, task = name.split("_", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
