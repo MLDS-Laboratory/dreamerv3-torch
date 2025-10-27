@@ -156,7 +156,7 @@ def make_env(config, mode, id):
         import envs.rwc as rwc
 
         env = rwc.RealWorldControl(
-            task, config.action_repeat, config.size, seed=config.seed + id
+            task, config.action_repeat, config.size, seed=config.seed + id, perturb_value=config.perturb_value
         )
     elif suite == "gym":
         from envs.from_gym import FromGym

@@ -82,7 +82,7 @@ env_configs = {
             "std": 0,
         },
     },
-    "quadruped_damping_high": {
+    "quadruped_damping_high": { 
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
             "enable": True,
@@ -111,11 +111,17 @@ env_configs = {
 class RealWorldControl(gym.Env):
     metadata = {}
 
-    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0):
+    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0, perturb_value=None):
         if name in env_configs:
             config = env_configs[name]
             name = config["env_id"]
             env_kwargs = {k: v for k, v in config.items() if k != "env_id"}
+            if "perturb_spec" in env_kwargs:
+                env_kwargs["perturb_spec"]["start"] = perturb_value
+                env_kwargs["perturb_spec"]["min"] = perturb_value
+                env_kwargs["perturb_spec"]["max"] = perturb_value
+            elif "noise_spec" in env_kwargs:
+                env_kwargs["noise_spec"]["gaussian"]["observation"] = perturb_value
         domain, task = name.split("_", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
