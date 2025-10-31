@@ -2,24 +2,23 @@ import gymnasium as gym
 import numpy as np
 
 env_configs = {
-    # === Perturb ===
-    "walker_perturb_low": {
+    "walker_perturb_high": { # works
         "env_id": "walker_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "thigh_length",
             "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
+            "start": 0.55,
+            "min": 0.55,
+            "max": 0.55,
             "std": 0,
         },
     },
-    "walker_perturb_high": {
+    "walker_friction_high": { # works
         "env_id": "walker_realworld_walk",
         "perturb_spec": {
             "enable": True,
-            "param": "thigh_length",
+            "param": "contact_friction",
             "scheduler": "constant",
             "start": 2,
             "min": 2,
@@ -27,271 +26,102 @@ env_configs = {
             "std": 0,
         },
     },
-    "cartpole_perturb_low": {
+    "walker_noise_high": { # works
+        "env_id": "walker_realworld_walk",
+        "noise_spec": {
+            'gaussian': {
+                'enable': True,
+                'actions': 0.0,
+                'observations': 0.1
+            }
+        },
+    },
+    "cartpole_perturb_high": { # works
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
             "enable": True,
-            "param": "pole_mass",
+            "param": "pole_length",
             "scheduler": "constant",
-            "start": 5,
-            "min": 5,
-            "max": 5,
+            "start": 3,
+            "min": 3,
+            "max": 3,
             "std": 0,
         },
     },
-    "cartpole_perturb_high": {
+    "cartpole_damping_high": { # works
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
             "enable": True,
-            "param": "pole_mass",
+            "param": "joint_damping",
             "scheduler": "constant",
-            "start": 10,
-            "min": 10,
-            "max": 10,
+            "start": 2e-1,
+            "min": 2e-1,
+            "max": 2e-1,
             "std": 0,
         },
     },
-    "humanoid_perturb_low": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "head_size",
-            "scheduler": "constant",
-            "start": 0.2,
-            "min": 0.2,
-            "max": 0.2,
-            "std": 0,
+    "cartpole_noise_high": { # works
+        "env_id": "cartpole_realworld_balance",
+        "noise_spec": {
+            'gaussian': {
+                'enable': True,
+                'actions': 0.0,
+                'observations': 0.1
+            }
         },
     },
-    "humanoid_perturb_high": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "head_size",
-            "scheduler": "constant",
-            "start": 0.3,
-            "min": 0.3,
-            "max": 0.3,
-            "std": 0,
-        },
-    },
-    "quadruped_perturb_low": {
+    "quadruped_perturb_high": { # works
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "shin_length",
             "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
+            "start": 1.5,
+            "min": 1.5,
+            "max": 1.5,
             "std": 0,
         },
     },
-    "quadruped_perturb_high": {
-        "env_id": "quadruped_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "shin_length",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
-
-    # === Friction ===
-    "walker_friction_low": {
-        "env_id": "walker_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 6,
-            "min": 6,
-            "max": 6,
-            "std": 0,
-        },
-    },
-    "walker_friction_high": {
-        "env_id": "walker_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 10,
-            "min": 10,
-            "max": 10,
-            "std": 0,
-        },
-    },
-    "humanoid_friction_low": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 6,
-            "min": 6,
-            "max": 6,
-            "std": 0,
-        },
-    },
-    "humanoid_friction_high": {
-        "env_id": "humanoid_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "contact_friction",
-            "scheduler": "constant",
-            "start": 10,
-            "min": 10,
-            "max": 10,
-            "std": 0,
-        },
-    },
-
-    # === Damping ===
-    "cartpole_damping_low": {
-        "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
-            "std": 0,
-        },
-    },
-    "cartpole_damping_high": {
-        "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
-        },
-    },
-    "quadruped_damping_low": {
+    "quadruped_damping_high": { 
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "joint_damping",
             "scheduler": "constant",
-            "start": 1,
-            "min": 1,
-            "max": 1,
+            "start": 60.0,
+            "min": 60.0,
+            "max": 60.0,
             "std": 0,
         },
     },
-    "quadruped_damping_high": {
+    "quadruped_noise_high": { # works
         "env_id": "quadruped_realworld_walk",
-        "perturb_spec": {
-            "enable": True,
-            "param": "joint_damping",
-            "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
-            "std": 0,
+        "noise_spec": {
+            'gaussian': {
+                'enable': True,
+                'actions': 0.0,
+                'observations': 0.1
+            }
         },
-    },
-
-    # === Noise ===
-    "walker_noise_low": {
-        "env_id": "walker_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 5,
-            }
-        }
-    },
-    "walker_noise_high": {
-        "env_id": "walker_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 30,
-            }
-        }
-    },
-    "cartpole_noise_low": {
-        "env_id": "cartpole_realworld_balance",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 5,
-            }
-        }
-    },
-    "cartpole_noise_high": {
-        "env_id": "cartpole_realworld_balance",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 30,
-            }
-        }
-    },
-    "humanoid_noise_low": {
-        "env_id": "humanoid_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 5,
-            }
-        }
-    },
-    "humanoid_noise_high": {
-        "env_id": "humanoid_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 30,
-            }
-        }
-    },
-    "quadruped_noise_low": {
-        "env_id": "quadruped_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 5,
-            }
-        }
-    },
-    "quadruped_noise_high": {
-        "env_id": "quadruped_realworld_walk",
-        "noise_spec": {
-            "gaussian": {
-                "enable": True,
-                "actions": 0,
-                "observations": 30,
-            }
-        }
     },
 }
+
 
 
 class RealWorldControl(gym.Env):
     metadata = {}
 
-    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0):
+    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0, perturb_value=None):
         if name in env_configs:
             config = env_configs[name]
             name = config["env_id"]
             env_kwargs = {k: v for k, v in config.items() if k != "env_id"}
+            if "perturb_spec" in env_kwargs and perturb_value:
+                env_kwargs["perturb_spec"]["start"] = perturb_value
+                env_kwargs["perturb_spec"]["min"] = perturb_value
+                env_kwargs["perturb_spec"]["max"] = perturb_value
+            elif "noise_spec" in env_kwargs and perturb_value:
+                env_kwargs["noise_spec"]["gaussian"]["observations"] = perturb_value
         domain, task = name.split("_", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"

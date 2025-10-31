@@ -68,7 +68,7 @@ class Logger:
         self.step = step
         self.output = output
         if output == 'wandb':
-            wandb.init(name=str(logdir))
+            wandb.init()
 
     def scalar(self, name, value):
         self._scalars[name] = float(value)
@@ -101,10 +101,10 @@ class Logger:
 
         if self.output == 'wandb':
             log_dict = dict(scalars)
-            for name, value in self._images.items():
-                log_dict[name] = wandb.Image(value)
-            for name, value in self._videos.items():
-                log_dict[name] = wandb.Video(self._format_video(value), fps=16, format="gif")
+            # for name, value in self._images.items():
+            #     log_dict[name] = wandb.Image(value)
+            # for name, value in self._videos.items():
+            #     log_dict[name] = wandb.Video(self._format_video(value), fps=16, format="gif")
             wandb.log(log_dict, step=step)
 
         self._scalars = {}
@@ -997,7 +997,7 @@ def set_seed_everywhere(seed):
 def enable_deterministic_run():
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     torch.backends.cudnn.benchmark = False
-    torch.use_deterministic_algorithms(True)
+    torch.use_deterministic_algorithms(True, warn_only=True)
 
 
 def recursively_collect_optim_state_dict(
