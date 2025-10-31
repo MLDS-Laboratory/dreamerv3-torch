@@ -997,7 +997,7 @@ def set_seed_everywhere(seed):
 def enable_deterministic_run():
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     torch.backends.cudnn.benchmark = False
-    torch.use_deterministic_algorithms(True)
+    torch.use_deterministic_algorithms(True, warn_only=True)
 
 
 def recursively_collect_optim_state_dict(
