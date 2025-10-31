@@ -115,7 +115,7 @@ rwc:
   video_pred_log: false
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
-  perturb_value: 0.0
+  perturb_value: ''
 
 dmc_proprio:
   steps: 5e5

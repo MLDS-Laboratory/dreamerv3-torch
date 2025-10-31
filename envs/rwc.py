@@ -116,11 +116,11 @@ class RealWorldControl(gym.Env):
             config = env_configs[name]
             name = config["env_id"]
             env_kwargs = {k: v for k, v in config.items() if k != "env_id"}
-            if "perturb_spec" in env_kwargs:
+            if "perturb_spec" in env_kwargs and perturb_value:
                 env_kwargs["perturb_spec"]["start"] = perturb_value
                 env_kwargs["perturb_spec"]["min"] = perturb_value
                 env_kwargs["perturb_spec"]["max"] = perturb_value
-            elif "noise_spec" in env_kwargs:
+            elif "noise_spec" in env_kwargs and perturb_value:
                 env_kwargs["noise_spec"]["gaussian"]["observations"] = perturb_value
         domain, task = name.split("_", 1)
         if domain == "cup":  # Only domain with multiple words.
