@@ -2,23 +2,45 @@ import gymnasium as gym
 import numpy as np
 
 env_configs = {
-    "walker_perturb_high": { # works
+    "walker_perturb_novelty": {
         "env_id": "walker_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "thigh_length",
             "scheduler": "constant",
-            "start": 0.55,
-            "min": 0.55,
-            "max": 0.55,
+            "start": 0.45,
+            "min": 0.45,
+            "max": 0.45,
             "std": 0,
         },
     },
-    "walker_friction_high": { # works
+    "walker_friction_novelty": {
         "env_id": "walker_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "contact_friction",
+            "scheduler": "constant",
+            "start": 1.4,
+            "min": 1.4,
+            "max": 1.4,
+            "std": 0,
+        },
+    },
+    "walker_noise_novelty": {
+        "env_id": "walker_realworld_walk",
+        "noise_spec": {
+            'gaussian': {
+                'enable': True,
+                'actions': 0.0,
+                'observations': 0.1
+            }
+        },
+    },
+    "cartpole_perturb_novelty": {
+        "env_id": "cartpole_realworld_balance",
+        "perturb_spec": {
+            "enable": True,
+            "param": "pole_length",
             "scheduler": "constant",
             "start": 2,
             "min": 2,
@@ -26,41 +48,19 @@ env_configs = {
             "std": 0,
         },
     },
-    "walker_noise_high": { # works
-        "env_id": "walker_realworld_walk",
-        "noise_spec": {
-            'gaussian': {
-                'enable': True,
-                'actions': 0.0,
-                'observations': 0.1
-            }
-        },
-    },
-    "cartpole_perturb_high": { # works
-        "env_id": "cartpole_realworld_balance",
-        "perturb_spec": {
-            "enable": True,
-            "param": "pole_length",
-            "scheduler": "constant",
-            "start": 3,
-            "min": 3,
-            "max": 3,
-            "std": 0,
-        },
-    },
-    "cartpole_damping_high": { # works
+    "cartpole_damping_novelty": {
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
             "enable": True,
             "param": "joint_damping",
             "scheduler": "constant",
-            "start": 2e-1,
-            "min": 2e-1,
-            "max": 2e-1,
+            "start": 4e-6,
+            "min": 4e-6,
+            "max": 4e-6,
             "std": 0,
         },
     },
-    "cartpole_noise_high": { # works
+    "cartpole_noise_novelty": {
         "env_id": "cartpole_realworld_balance",
         "noise_spec": {
             'gaussian': {
@@ -70,19 +70,19 @@ env_configs = {
             }
         },
     },
-    "quadruped_perturb_high": { # works
+    "quadruped_perturb_novelty": {
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
             "enable": True,
             "param": "shin_length",
             "scheduler": "constant",
-            "start": 1.5,
-            "min": 1.5,
-            "max": 1.5,
+            "start": 0.5,
+            "min": 0.5,
+            "max": 0.5,
             "std": 0,
         },
     },
-    "quadruped_damping_high": { 
+    "quadruped_damping_novelty": { 
         "env_id": "quadruped_realworld_walk",
         "perturb_spec": {
             "enable": True,
@@ -94,7 +94,7 @@ env_configs = {
             "std": 0,
         },
     },
-    "quadruped_noise_high": { # works
+    "quadruped_noise_novelty": {
         "env_id": "quadruped_realworld_walk",
         "noise_spec": {
             'gaussian': {
