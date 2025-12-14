@@ -57,7 +57,7 @@ class TimeRecording:
 
 
 class Logger:
-    def __init__(self, logdir, step, output=None):
+    def __init__(self, logdir, step, config=None):
         self._logdir = logdir
         self._writer = SummaryWriter(log_dir=str(logdir), max_queue=1000)
         self._last_step = None
@@ -66,9 +66,9 @@ class Logger:
         self._images = {}
         self._videos = {}
         self.step = step
-        self.output = output
-        if output == 'wandb':
-            wandb.init()
+        self.output = config.output
+        if config.output == 'wandb':
+            wandb.init(config=vars(config))
 
     def scalar(self, name, value):
         self._scalars[name] = float(value)
