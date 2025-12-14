@@ -138,5 +138,5 @@ dmypy.json
 .vscode/*
 
 # Dev files
-entrypoint-dev.sh
-Dockerfile.dev
+*-dev.sh
+*.dev
