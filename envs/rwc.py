@@ -8,9 +8,9 @@ env_configs = {
             "enable": True,
             "param": "thigh_length",
             "scheduler": "constant",
-            "start": 0.45,
-            "min": 0.45,
-            "max": 0.45,
+            "start": 0.55,
+            "min": 0.55,
+            "max": 0.55,
             "std": 0,
         },
     },
@@ -20,9 +20,9 @@ env_configs = {
             "enable": True,
             "param": "contact_friction",
             "scheduler": "constant",
-            "start": 1.4,
-            "min": 1.4,
-            "max": 1.4,
+            "start": 0.01,
+            "min": 0.01,
+            "max": 0.01,
             "std": 0,
         },
     },
@@ -32,7 +32,7 @@ env_configs = {
             'gaussian': {
                 'enable': True,
                 'actions': 0.0,
-                'observations': 0.1
+                'observations': 1.0
             }
         },
     },
@@ -40,11 +40,11 @@ env_configs = {
         "env_id": "cartpole_realworld_balance",
         "perturb_spec": {
             "enable": True,
-            "param": "pole_length",
+            "param": "pole_mass",
             "scheduler": "constant",
-            "start": 2,
-            "min": 2,
-            "max": 2,
+            "start": 10,
+            "min": 10,
+            "max": 10,
             "std": 0,
         },
     },
@@ -65,8 +65,8 @@ env_configs = {
         "noise_spec": {
             'gaussian': {
                 'enable': True,
-                'actions': 0.0,
-                'observations': 0.1
+                'actions': 0.5,
+                'observations': 0.5
             }
         },
     },
@@ -76,9 +76,9 @@ env_configs = {
             "enable": True,
             "param": "shin_length",
             "scheduler": "constant",
-            "start": 0.5,
-            "min": 0.5,
-            "max": 0.5,
+            "start": 4.0,
+            "min": 4.0,
+            "max": 4.0,
             "std": 0,
         },
     },
@@ -88,9 +88,9 @@ env_configs = {
             "enable": True,
             "param": "joint_damping",
             "scheduler": "constant",
-            "start": 60.0,
-            "min": 60.0,
-            "max": 60.0,
+            "start": 10.0,
+            "min": 10.0,
+            "max": 10.0,
             "std": 0,
         },
     },
@@ -99,8 +99,8 @@ env_configs = {
         "noise_spec": {
             'gaussian': {
                 'enable': True,
-                'actions': 0.0,
-                'observations': 0.1
+                'actions': 5.0,
+                'observations': 5.0
             }
         },
     },
