@@ -325,6 +325,9 @@ def main(config):
                 is_eval=True,
                 episodes=config.eval_episode_num,
             )
+            # if config.feat_pred_log:
+            #     feat_prod = agent._wm.feat_pred(next(eval_dataset))
+
             if config.video_pred_log:
                 video_pred = agent._wm.video_pred(next(eval_dataset))
                 logger.video("eval_openl", to_np(video_pred))

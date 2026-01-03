@@ -50,6 +50,6 @@ RUN chown -R 1000:root .
 
 ENTRYPOINT ["python3", \
             "dreamer.py", \
-            "--configs", "dmc_proprio", \
-            "--task", "dmc_walker_walk", \
+            "--configs", "gym", \
+            "--task", "gym_Swimmer-v5", \
             "--logdir", "./logdir/dmc_walker_walk"]

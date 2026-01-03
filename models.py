@@ -146,6 +146,7 @@ class WorldModel(nn.Module):
                         preds[name] = pred
                 losses = {}
                 for name, pred in preds.items():
+                    # print(pred._mode.shape, data[name].shape)
                     loss = -pred.log_prob(data[name])
                     assert loss.shape == embed.shape[:2], (name, loss.shape)
                     losses[name] = loss
@@ -196,6 +197,30 @@ class WorldModel(nn.Module):
         assert "is_terminal" in obs
         obs["cont"] = (1.0 - obs["is_terminal"]).unsqueeze(-1)
         return obs
+    
+    def feat_pred(self, data):
+        data = self.preprocess(data)
+        embed = self.encoder(data)
+
+        states, _ = self.dynamics.observe(
+            embed[:6, :5], data["action"][:6, :5], data["is_first"][:6, :5]
+        )
+
+        preds = {}
+        feat = self.dynamics.get_feat(states)
+        pred = self.heads["decoder"](feat)
+        if type(pred) is dict:
+            preds.update(pred)
+        else:
+            preds["decoder"] = pred
+        losses = {}
+        for name, pred in preds.items():
+            print(pred._mode.shape, data[name][:6, :5].shape)
+            loss = -pred.log_prob(data[name][:6, :5])
+            assert loss.shape == embed.shape[:2], (name, loss.shape)
+            losses[name] = loss
+        print(losses)
+
 
     def video_pred(self, data):
         data = self.preprocess(data)
@@ -204,6 +229,7 @@ class WorldModel(nn.Module):
         states, _ = self.dynamics.observe(
             embed[:6, :5], data["action"][:6, :5], data["is_first"][:6, :5]
         )
+        print(self.heads["decoder"](self.dynamics.get_feat(states)).keys())
         recon = self.heads["decoder"](self.dynamics.get_feat(states))["image"].mode()[
             :6
         ]
@@ -320,7 +346,8 @@ class ImagBehavior(nn.Module):
                     weights,
                     base,
                 )
-                actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
+                if self._config.algorithm != 'exp-dreamer':
+                    actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
                 actor_loss = torch.mean(actor_loss)
                 metrics.update(mets)
                 if self._config.algorithm == 'mg-dreamer':

@@ -20,9 +20,9 @@ env_configs = {
             "enable": True,
             "param": "contact_friction",
             "scheduler": "constant",
-            "start": 0.01,
-            "min": 0.01,
-            "max": 0.01,
+            "start": 6,
+            "min": 6,
+            "max": 6,
             "std": 0,
         },
     },
@@ -32,7 +32,7 @@ env_configs = {
             'gaussian': {
                 'enable': True,
                 'actions': 0.0,
-                'observations': 1.0
+                'observations': 5.0
             }
         },
     },
