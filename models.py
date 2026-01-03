@@ -221,12 +221,31 @@ class WorldModel(nn.Module):
         return torch.cat([truth, model, error], 2)
 
 
-class ImagBehavior(nn.Module):
+class SwitchBehavior(nn.Module):
     def __init__(self, config, world_model):
+        super(SwitchBehavior, self).__init__()
+        self._risk_seeking_behavior = ImagBehavior(config, world_model, 'risk_seeking')
+        self._risk_averse_behavior = ImagBehavior(config, world_model, 'risk_averse')
+
+    def actor(self, feat, **kwargs):
+        return self._risk_seeking_behavior.actor(feat, **kwargs)
+
+    def _train(
+        self,
+        start,
+        objective,
+    ):
+        risk_seeking_outs = self._risk_seeking_behavior._train(start, objective)
+        risk_averse_outs = self._risk_averse_behavior._train(start, objective)
+        return (risk_seeking_outs, risk_averse_outs)
+
+class ImagBehavior(nn.Module):
+    def __init__(self, config, world_model, risk_preference=None):
         super(ImagBehavior, self).__init__()
         self._use_amp = True if config.precision == 16 else False
         self._config = config
         self._world_model = world_model
+        self.risk_preference = risk_preference
         if config.dyn_discrete:
             feat_size = config.dyn_stoch * config.dyn_discrete + config.dyn_deter
         else:
@@ -323,7 +342,7 @@ class ImagBehavior(nn.Module):
                 actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
                 actor_loss = torch.mean(actor_loss)
                 metrics.update(mets)
-                if self._config.algorithm == 'mg-dreamer':
+                if self._config.algorithm == 'mg_dreamer':
                     gini_loss, mets = self._compute_gini_loss(
                         imag_feat,
                         imag_action,
@@ -391,10 +410,30 @@ class ImagBehavior(nn.Module):
         else:
             discount = self._config.discount * torch.ones_like(reward)
         value = self.value(imag_feat).mode()
-        if self._config.algorithm == 'mvpi-dreamer':
+        if self._config.algorithm == 'mvpi_dreamer':
             y = reward.mean(1, keepdim=True)
             reward = reward - self._config.mvpi_lambda * reward ** 2 + 2 * self._config.mvpi_lambda * reward * y
-        if self._config.algorithm == 'exp-dreamer':
+        if self._config.algorithm == 'exp_dreamer' and self.risk_preference == 'risk_seeking':
+            target = tools.exponential_lambda_return(
+                reward[1:],
+                value[:-1],
+                discount[1:],
+                bootstrap=value[-1],
+                lambda_=self._config.discount_lambda,
+                beta_=self._config.beta,
+                axis=0,
+            )
+        elif self._config.algorithm == 'exp_dreamer' and self.risk_preference == 'risk_averse':
+            target = tools.exponential_lambda_return(
+                reward[1:],
+                value[:-1],
+                discount[1:],
+                bootstrap=value[-1],
+                lambda_=self._config.discount_lambda,
+                beta_=-self._config.beta,
+                axis=0,
+            )
+        elif self._config.algorithm == 'exp_dreamer':
             target = tools.exponential_lambda_return(
                 reward[1:],
                 value[:-1],

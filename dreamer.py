@@ -42,7 +42,11 @@ class Dreamer(nn.Module):
         self._update_count = 0
         self._dataset = dataset
         self._wm = models.WorldModel(obs_space, act_space, self._step, config)
-        self._task_behavior = models.ImagBehavior(config, self._wm)
+
+        self._task_behavior = (
+            models.ImagBehavior(config, self._wm) if config.algorithm != 'switch_dreamer' 
+            else models.SwitchBehavior(config, self._wm)
+        )
         if (
             config.compile and os.name != "nt"
         ):  # compilation is not supported on windows
