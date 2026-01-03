@@ -21,6 +21,8 @@ import torch
 from torch import nn
 from torch import distributions as torchd
 
+import gymnasium as gym
+
 
 to_np = lambda x: x.detach().cpu().numpy()
 
@@ -42,7 +44,8 @@ class Dreamer(nn.Module):
         self._update_count = 0
         self._dataset = dataset
         self._wm = models.WorldModel(obs_space, act_space, self._step, config)
-        self._task_behavior = models.ImagBehavior(config, self._wm)
+
+        self._task_behavior = models.SwitchBehavior(config, self._wm) if config.switch else models.ImagBehavior(config, self._wm)
         if (
             config.compile and os.name != "nt"
         ):  # compilation is not supported on windows
@@ -76,7 +79,18 @@ class Dreamer(nn.Module):
                     self._logger.video("train_openl", to_np(openl))
                 self._logger.write(fps=True)
 
-        policy_output, state = self._policy(obs, state, training)
+        policy_output, state, novelty_bound, (first, second, third) = self._policy(obs, state, training)
+        print(novelty_bound)
+        novelty_bound = novelty_bound.int()
+        self._logger.scalar('novelty_bound', float(np.mean(novelty_bound.cpu().numpy())))
+        self._logger.scalar('first', float(np.mean(first.cpu().numpy())))
+        self._logger.scalar('second', float(np.mean(second.cpu().numpy())))
+        self._logger.scalar('third', float(np.mean(third.cpu().numpy())))
+
+        # self._logger.scalar('novelty_bound', switch)
+        # self._logger.scalar('first', first.mean())
+        # self._logger.scalar('second', second.mean())
+        # self._logger.scalar('third', third.mean())
 
         if training:
             self._step += len(reset)
@@ -90,20 +104,47 @@ class Dreamer(nn.Module):
             latent, action = state
         obs = self._wm.preprocess(obs)
         embed = self._wm.encoder(obs)
-        latent, _ = self._wm.dynamics.obs_step(latent, action, embed, obs["is_first"])
+
+        kwargs = {}
+        latent, _, novelty_bound, (first, second, third) = self._wm.dynamics.obs_step_with_bound(latent, action, embed, obs["is_first"])
+        # if self._config.switch:
+        #     latent, _, novelty_bound, (first, second, third) = self._wm.dynamics.obs_step_with_bound(latent, action, embed, obs["is_first"])
+        # else:
+        #     latent, _ = self._wm.dynamics.obs_step(latent, action, embed, obs["is_first"])
+
         if self._config.eval_state_mean:
             latent["stoch"] = latent["mean"]
         feat = self._wm.dynamics.get_feat(latent)
-        if not training:
-            actor = self._task_behavior.actor(feat)
-            action = actor.mode()
-        elif self._should_expl(self._step):
-            actor = self._expl_behavior.actor(feat)
-            action = actor.sample()
+
+        if self._config.switch:
+            if not training:
+                rs_actor, ra_actor = self._task_behavior.actor(feat, **kwargs)
+                rs_action = rs_actor.mode()
+                ra_action = ra_actor.mode()
+            elif self._should_expl(self._step):
+                rs_actor, ra_actor = self._expl_behavior.actor(feat, **kwargs)
+                rs_action = rs_actor.sample()
+                ra_action = ra_actor.sample()
+            else:
+                rs_actor, ra_actor = self._task_behavior.actor(feat, **kwargs)
+                rs_action = rs_actor.sample()
+                ra_action = ra_actor.sample()
+            rs_logprob = rs_actor.log_prob(rs_action)
+            ra_logprob = ra_actor.log_prob(ra_action)
+            action = torch.where(novelty_bound.unsqueeze(1), rs_action, ra_action)
+            logprob = torch.where(novelty_bound, rs_logprob, ra_logprob)
         else:
-            actor = self._task_behavior.actor(feat)
-            action = actor.sample()
-        logprob = actor.log_prob(action)
+            if not training:
+                actor = self._task_behavior.actor(feat, **kwargs)
+                action = actor.mode()
+            elif self._should_expl(self._step):
+                actor = self._expl_behavior.actor(feat, **kwargs)
+                action = actor.sample()
+            else:
+                actor = self._task_behavior.actor(feat, **kwargs)
+                action = actor.sample()
+            logprob = actor.log_prob(action)
+
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
         if self._config.actor["dist"] == "onehot_gumble":
@@ -112,7 +153,7 @@ class Dreamer(nn.Module):
             )
         policy_output = {"action": action, "logprob": logprob}
         state = (latent, action)
-        return policy_output, state
+        return policy_output, state, novelty_bound, (first, second, third)
 
     def _train(self, data):
         metrics = {}
@@ -122,7 +163,15 @@ class Dreamer(nn.Module):
         reward = lambda f, s, a: self._wm.heads["reward"](
             self._wm.dynamics.get_feat(s)
         ).mode()
-        metrics.update(self._task_behavior._train(start, reward)[-1])
+
+        if self._config.switch:
+            risk_seeking_outs, risk_averse_outs = self._task_behavior._train(start, reward)
+            risk_seeking_mets = risk_seeking_outs[-1]
+            risk_averse_mets = risk_averse_outs[-1]
+            metrics.update({"risk_seeking_" + key: value for key, value in risk_seeking_mets.items()})
+            metrics.update({"risk_averse_" + key: value for key, value in risk_averse_mets.items()})
+        else:
+            metrics.update(self._task_behavior._train(start, reward)[-1])
         if self._config.expl_behavior != "greedy":
             mets = self._expl_behavior.train(start, context, data)[-1]
             metrics.update({"expl_" + key: value for key, value in mets.items()})
@@ -131,6 +180,9 @@ class Dreamer(nn.Module):
                 self._metrics[name] = [value]
             else:
                 self._metrics[name].append(value)
+
+
+
 
 
 def count_steps(folder):
@@ -155,14 +207,23 @@ def make_env(config, mode, id):
     elif suite == "rwc":
         import envs.rwc as rwc
 
+        # env = rwc.RealWorldControl(
+        #     task, config.action_repeat, config.size, seed=config.seed + id, perturb_value=config.perturb_value
+        # )
         env = rwc.RealWorldControl(
-            task, config.action_repeat, config.size, seed=config.seed + id, perturb_value=config.perturb_value
+            task, config.action_repeat, config.size, seed=config.seed + id
         )
     elif suite == "gym":
         from envs.from_gym import FromGym
         
         env = FromGym(
             task, size=config.size, seed=config.seed + id
+        )
+    elif suite == "minigrid":
+        from envs.minigrid import MiniGrid
+        
+        env = MiniGrid(
+            task, size=config.size, obstacle_type=config.obstacle_type, seed=config.seed + id
         )
     elif suite == "atari":
         import envs.atari as atari
@@ -259,27 +320,28 @@ def main(config):
     print("Action Space", acts)
     config.num_actions = acts.n if hasattr(acts, "n") else acts.shape[0]
 
+    if hasattr(acts, "discrete") or hasattr(acts, "n"):
+        random_actor = tools.OneHotDist(
+            torch.zeros(config.num_actions).repeat(config.envs, 1)
+        )
+    else:
+        random_actor = torchd.independent.Independent(
+            torchd.uniform.Uniform(
+                torch.tensor(acts.low).repeat(config.envs, 1),
+                torch.tensor(acts.high).repeat(config.envs, 1),
+            ),
+            1,
+        )
+
+    def random_agent(o, d, s):
+        action = random_actor.sample()
+        logprob = random_actor.log_prob(action)
+        return {"action": action, "logprob": logprob}, None
+
     state = None
     if not config.offline_traindir:
         prefill = max(0, config.prefill - count_steps(config.traindir))
         print(f"Prefill dataset ({prefill} steps).")
-        if hasattr(acts, "discrete"):
-            random_actor = tools.OneHotDist(
-                torch.zeros(config.num_actions).repeat(config.envs, 1)
-            )
-        else:
-            random_actor = torchd.independent.Independent(
-                torchd.uniform.Uniform(
-                    torch.tensor(acts.low).repeat(config.envs, 1),
-                    torch.tensor(acts.high).repeat(config.envs, 1),
-                ),
-                1,
-            )
-
-        def random_agent(o, d, s):
-            action = random_actor.sample()
-            logprob = random_actor.log_prob(action)
-            return {"action": action, "logprob": logprob}, None
 
         state = tools.simulate(
             random_agent,
@@ -331,6 +393,18 @@ def main(config):
             if config.video_pred_log:
                 video_pred = agent._wm.video_pred(next(eval_dataset))
                 logger.video("eval_openl", to_np(video_pred))
+            tools.simulate(
+                random_agent,
+                eval_envs,
+                eval_eps,
+                config.evaldir,
+                logger,
+                is_eval=True,
+                episodes=config.eval_episode_num,
+            )
+            if config.video_pred_log:
+                video_pred = agent._wm.video_pred(next(eval_dataset))
+                logger.video("eval_random", to_np(video_pred))
         print("Start training.")
         state = tools.simulate(
             agent,

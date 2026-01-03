@@ -18,7 +18,8 @@ defaults:
   precision: 32
   debug: False
   video_pred_log: True
-  algorithm: 'dreamer'
+  switch: False
+  algorithm: dreamer
   output: 'wandb'
 
   # Environment
@@ -80,7 +81,7 @@ defaults:
   discount_lambda: 0.95
   mvpi_lambda: 0.5
   mg_lambda: 1.0
-  beta: -0.001
+  beta: 0.005
   imag_horizon: 15
   imag_gradient: 'dynamics'
   imag_gradient_mix: 0.0
@@ -108,6 +109,16 @@ gym:
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
 
+minigrid:
+  steps: 1e5
+  action_repeat: 1
+  envs: 4
+  train_ratio: 512
+  video_pred_log: false
+  encoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  decoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  obstacle_type: wall
+
 rwc:
   steps: 5e5
   action_repeat: 2
@@ -116,7 +127,7 @@ rwc:
   video_pred_log: false
   encoder: {mlp_keys: '.*', cnn_keys: '$^'}
   decoder: {mlp_keys: '.*', cnn_keys: '$^'}
-  perturb_value: ''
+  # perturb_value: ''
 
 dmc_proprio:
   steps: 5e5

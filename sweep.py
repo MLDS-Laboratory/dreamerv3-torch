@@ -7,7 +7,7 @@ from pathlib import Path
 @ray.remote(num_gpus=1, resources={"gpu_slot": 1})
 def run_trial(args):
     os.environ["WANDB_PROJECT"] = args[11]
-    cmd = ["python", "dreamer.py"] + args
+    cmd = ["python", "evaluate.py"] + args
     subprocess.run(cmd, check=True)
 
 tasks = ["gym_RiskyInvertedPendulum-v0"]

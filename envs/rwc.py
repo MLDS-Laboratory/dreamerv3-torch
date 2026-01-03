@@ -31,8 +31,8 @@ env_configs = {
         "noise_spec": {
             'gaussian': {
                 'enable': True,
-                'actions': 0.0,
-                'observations': 5.0
+                'actions': 1,
+                'observations': 1
             }
         },
     },
@@ -111,17 +111,17 @@ env_configs = {
 class RealWorldControl(gym.Env):
     metadata = {}
 
-    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0, perturb_value=None):
+    def __init__(self, name, action_repeat=1, size=(64, 64), camera=None, env_kwargs={}, seed=0):
         if name in env_configs:
             config = env_configs[name]
             name = config["env_id"]
             env_kwargs = {k: v for k, v in config.items() if k != "env_id"}
-            if "perturb_spec" in env_kwargs and perturb_value:
-                env_kwargs["perturb_spec"]["start"] = float(perturb_value)
-                env_kwargs["perturb_spec"]["min"] = float(perturb_value)
-                env_kwargs["perturb_spec"]["max"] = float(perturb_value)
-            elif "noise_spec" in env_kwargs and perturb_value:
-                env_kwargs["noise_spec"]["gaussian"]["observations"] = float(perturb_value)
+            # if "perturb_spec" in env_kwargs and perturb_value:
+            #     env_kwargs["perturb_spec"]["start"] = float(perturb_value)
+            #     env_kwargs["perturb_spec"]["min"] = float(perturb_value)
+            #     env_kwargs["perturb_spec"]["max"] = float(perturb_value)
+            # elif "noise_spec" in env_kwargs and perturb_value:
+            #     env_kwargs["noise_spec"]["gaussian"]["observations"] = float(perturb_value)
         domain, task = name.split("_", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"

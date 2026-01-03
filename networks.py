@@ -170,6 +170,89 @@ class RSSM(nn.Module):
                 torchd.independent.Independent(torchd.normal.Normal(mean, std), 1)
             )
         return dist
+    
+    def obs_step_with_bound(self, prev_state, prev_action, embed, is_first, sample=True):
+
+        # initialize all prev_state
+        if prev_state == None or torch.sum(is_first) == len(is_first):
+            prev_state = self.initial(len(is_first))
+            prev_action = torch.zeros(
+                (len(is_first), self._num_actions), device=self._device
+            )
+        # overwrite the prev_state only where is_first=True
+        elif torch.sum(is_first) > 0:
+            is_first = is_first[:, None]
+            prev_action *= 1.0 - is_first
+            init_state = self.initial(len(is_first))
+            for key, val in prev_state.items():
+                is_first_r = torch.reshape(
+                    is_first,
+                    is_first.shape + (1,) * (len(val.shape) - len(is_first.shape)),
+                )
+                prev_state[key] = (
+                    val * (1.0 - is_first_r) + init_state[key] * is_first_r
+                )
+
+        # p(z|ht)
+        prior = self.img_step(prev_state, prev_action)
+
+        h0 = torch.zeros_like(prior["deter"], device=self._device)
+        x0 = torch.zeros_like(embed, device=self._device)
+
+        x = torch.cat([h0, embed], -1)
+        x = self._obs_out_layers(x)
+        # (batch_size, hidden) -> (batch_size, stoch, discrete_num)
+        stats = self._suff_stats_layer("obs", x)
+        if sample:
+            stoch = self.get_dist(stats).sample()
+        else:
+            stoch = self.get_dist(stats).mode()
+        # p(z|h0, xt)
+        obs = {"stoch": stoch, "deter": h0, **stats}
+
+        # p(z|h0)
+        x = torch.cat([h0, x0], -1)
+        x = self._obs_out_layers(x)
+        stats = self._suff_stats_layer("obs", x)
+        if sample:
+            stoch = self.get_dist(stats).sample()
+        else:
+            stoch = self.get_dist(stats).mode()
+        empty = {"stoch": stoch, "deter": h0, **stats}
+        
+        x = torch.cat([prior["deter"], embed], -1)
+        # (batch_size, prior_deter + embed) -> (batch_size, hidden)
+        x = self._obs_out_layers(x)
+        # (batch_size, hidden) -> (batch_size, stoch, discrete_num)
+        stats = self._suff_stats_layer("obs", x)
+        if sample:
+            stoch = self.get_dist(stats).sample()
+        else:
+            stoch = self.get_dist(stats).mode()
+
+        # p(z|ht, xt)
+        post = {"stoch": stoch, "deter": prior["deter"], **stats}
+
+        kld = torchd.kl.kl_divergence
+        dist = lambda x: self.get_dist(x)
+        sg = lambda x: {k: v.detach() for k, v in x.items()}
+
+        first = kld(
+            dist(sg(post)) if self._discrete else dist(sg(post))._dist,
+            dist(sg(prior)) if self._discrete else dist(sg(prior))._dist,
+        )
+        second = kld(
+            dist(sg(post)) if self._discrete else dist(sg(post))._dist,
+            dist(sg(empty)) if self._discrete else dist(sg(empty))._dist
+        )
+        third = kld(
+            dist(sg(post)) if self._discrete else dist(sg(post))._dist,
+            dist(sg(obs)) if self._discrete else dist(sg(obs))._dist
+        )
+        
+        result = first <= second - third
+        return post, prior, result, (first, second, third)
+        
 
     def obs_step(self, prev_state, prev_action, embed, is_first, sample=True):
         # initialize all prev_state

@@ -30,17 +30,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 RUN pip3 install --upgrade pip
 
-# Envs
-ENV NUMBA_CACHE_DIR=/tmp
-ENV WANDB_PROJECT=dreamer
-
-# Install NovGrid
-RUN git clone https://github.com/eilab-gt/NovGrid.git
-RUN cd NovGrid && pip install -e .
-
 # Install requiremqnts
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+
+# Envs
+ENV NUMBA_CACHE_DIR=/tmp
+ENV WANDB_PROJECT=minigrid
 
 # Source
 RUN mkdir /app
