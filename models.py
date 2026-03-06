@@ -250,8 +250,30 @@ class WorldModel(nn.Module):
 class SwitchBehavior(nn.Module):
     def __init__(self, config, world_model):
         super(SwitchBehavior, self).__init__()
-        self._risk_seeking_behavior = ImagBehavior(config, world_model)
-        self._risk_averse_behavior = RiskSensitiveImagBehavior(config, world_model, risk_averse=False)
+        switch_config = str(getattr(config, "switch_config", "first")).strip().lower()
+
+        if switch_config in {"1", "first"}:
+            self._risk_seeking_behavior = RiskSensitiveImagBehavior(
+                config, world_model, risk_averse=False
+            )
+            self._risk_averse_behavior = RiskSensitiveImagBehavior(
+                config, world_model, risk_averse=True
+            )
+        elif switch_config in {"2", "second"}:
+            self._risk_seeking_behavior = ImagBehavior(config, world_model)
+            self._risk_averse_behavior = RiskSensitiveImagBehavior(
+                config, world_model, risk_averse=True
+            )
+        elif switch_config in {"3", "third"}:
+            self._risk_seeking_behavior = ImagBehavior(config, world_model)
+            self._risk_averse_behavior = RiskSensitiveImagBehavior(
+                config, world_model, risk_averse=False
+            )
+        else:
+            raise ValueError(
+                "Unknown switch_config: "
+                f"{switch_config}. Expected one of: first, second, third (or 1, 2, 3)."
+            )
 
     def actor(self, feat, **kwargs):
         risk_seeking_action = self._risk_seeking_behavior.actor(feat, **kwargs)
@@ -377,7 +399,7 @@ class RiskSensitiveImagBehavior(nn.Module):
                     weights,
                     base,
                 )
-                if self._config.algorithm != 'exp-dreamer':
+                if self._config.algorithm != 'exp':
                     actor_loss -= self._config.actor["entropy"] * actor_ent[:-1, ..., None]
                 actor_loss = torch.mean(actor_loss)
                 metrics.update(mets)

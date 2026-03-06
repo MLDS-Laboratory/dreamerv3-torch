@@ -19,8 +19,10 @@ defaults:
   debug: False
   video_pred_log: True
   switch: False
+  switch_config: 'first'  # first|second|third (or 1|2|3)
   algorithm: dreamer
-  output: 'wandb'
+  output: ''
+  project: ''
 
   # Environment
   task: 'dmc_walker_walk'
@@ -65,8 +67,7 @@ defaults:
   initial: 'learned'
 
   # Training
-  # batch_size: 16
-  batch_size: 64
+  batch_size: 16
   batch_length: 64
   train_ratio: 512
   pretrain: 100
@@ -224,20 +225,42 @@ testing:
   deterministic_run: False
   compile: False
   precision: 16
-  prefill: 200
+  # prefill: 100
   eval_every: 5e4
   eval_episode_num: 1
   log_every: 2.5e4
   video_pred_log: false
-  batch_length: 64
-  train_ratio: 512
-  batch_size: 64
-  dyn_hidden: 256
-  dyn_deter: 256
-  dyn_stoch: 16
-  dyn_discrete: 16
-  units: 256
-  encoder: {mlp_layers: 3, mlp_units: 256}
-  decoder: {mlp_layers: 3, mlp_units: 256}
-  actor: {layers: 2}
-  critic: {layers: 2}
+  # batch_length: 32
+  # train_ratio: 128
+  # batch_size: 32
+  # dyn_hidden: 256
+  # dyn_deter: 256
+  # dyn_stoch: 16
+  # dyn_discrete: 16
+  # units: 256
+  # encoder: {mlp_layers: 3, mlp_units: 256}
+  # decoder: {mlp_layers: 3, mlp_units: 256}
+  # actor: {layers: 2}
+  # critic: {layers: 2}
+
+# testing:
+#   deterministic_run: False
+#   compile: True
+#   precision: 16
+#   prefill: 100
+#   eval_every: 1e4
+#   eval_episode_num: 1
+#   log_every: 1e4
+#   video_pred_log: false
+#   batch_length: 32
+#   train_ratio: 128
+#   batch_size: 32
+#   dyn_hidden: 16
+#   dyn_deter: 16
+#   dyn_stoch: 16
+#   dyn_discrete: 16
+#   units: 16
+#   encoder: {mlp_layers: 1, mlp_units: 16}
+#   decoder: {mlp_layers: 1, mlp_units: 16}
+#   actor: {layers: 1}
+#   critic: {layers: 1}

@@ -3,41 +3,45 @@ import os
 import subprocess
 import shutil
 from pathlib import Path
+from uuid import uuid4
 
-@ray.remote(num_gpus=1/4, resources={"gpu_slot": 1})
+@ray.remote(num_gpus=1)
 def run_trial(args):
-    os.environ["WANDB_PROJECT"] = args[11]
     cmd = ["python", "dreamer.py"] + args
     subprocess.run(cmd, check=True)
+    
+tasks = ["rwc_quadruped_perturb_novelty"]
 
-tasks = ["rwc_walker_friction_novelty", "rwc_walker_noise_novelty"]
-
-base = Path("./logdir/rwc_walker_realworld_walk")
+base = Path("./logdir/rwc_quadruped_realworld_walk")
 for name in tasks:
     dst = Path("./logdir") / name
     if not dst.exists():
         shutil.copytree(base, dst)
 
-seeds = [0, 10, 20]
+seeds = [0]
 steps = "1e6"
+use_testing = True
+identifier = str(uuid4())
 
 configs = [
-    ("dreamer", None),
-    ("mg-dreamer", "mg_lambda=0.8"),
-    ("mg-dreamer", "mg_lambda=1.0"),
-    ("mg-dreamer", "mg_lambda=1.2"),
-    ("mvpi-dreamer", "mvpi_lambda=0.2"),
-    ("mvpi-dreamer", "mvpi_lambda=0.4"),
-    ("mvpi-dreamer", "mvpi_lambda=0.6"),
-    ("exp-dreamer", "beta=-0.001"),
-    ("exp-dreamer", "beta=-0.005"),
-    ("exp-dreamer", "beta=-0.01"),
+    ("dreamer", None, False),
+    # ("mg-dreamer", "mg_lambda=0.8"),
+    # ("mg-dreamer", "mg_lambda=1.0"),
+    # ("mg-dreamer", "mg_lambda=1.2"),
+    # ("mvpi-dreamer", "mvpi_lambda=0.2"),
+    # ("mvpi-dreamer", "mvpi_lambda=0.4"),
+    # ("mvpi-dreamer", "mvpi_lambda=0.6"),
+    ("exp", "beta=-0.001", False),
+    # ("exp-dreamer", "beta=-0.005"),
+    # ("exp-dreamer", "beta=-0.01"),
+    # ("exp", "beta=0.001", False),
+    ("exp", "beta=0.001", True),
 ]
 
 trials = []
 for task in tasks:
     for seed in seeds:
-        for algorithm, hyper in configs:
+        for algorithm, hyper, switch in configs:
             if hyper is not None:
                 hp_name = hyper.replace("=", "_")
                 extra_args = [f"--{hyper}"]
@@ -45,16 +49,22 @@ for task in tasks:
                 hp_name = "none"
                 extra_args = []
 
-            logdir = f"./logdir/{task}/{algorithm}/{hp_name}/{seed}"
+            logdir = f"./logdir/{task}/{algorithm}/{hp_name}/{switch}/{seed}"
+
+            config_names = ["rwc"]
+            if use_testing:
+                config_names.append("testing")
 
             args = [
-                "--configs", "rwc",
+                "--configs", *config_names,
                 "--output", "wandb",
+                "--project", f"{task}-{identifier}",
                 "--steps", steps,
+                "--switch", str(switch),
                 "--seed", str(seed),
                 "--algorithm", algorithm,
-                "--task", task,
                 "--logdir", logdir,
+                "--task", task,
             ] + extra_args
 
             trials.append(args)

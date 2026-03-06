@@ -39,7 +39,7 @@ for task in tasks:
                 hp_name = "none"
                 extra_args = []
 
-            logdir = f"./logdir/{task}/{algorithm}/{hp_name}/{seed}1"
+            logdir = f"./logdir/{task}/{algorithm}/{hp_name}/{seed}"
 
             args = [
                 "--configs", "gym",

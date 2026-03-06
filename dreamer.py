@@ -45,7 +45,12 @@ class Dreamer(nn.Module):
         self._dataset = dataset
         self._wm = models.WorldModel(obs_space, act_space, self._step, config)
 
-        self._task_behavior = models.SwitchBehavior(config, self._wm) if config.switch else models.ImagBehavior(config, self._wm)
+        if config.switch:
+            self._task_behavior = models.SwitchBehavior(config, self._wm)
+        elif config.algorithm in {"exp", "mvpi", "mg"}:
+            self._task_behavior = models.RiskSensitiveImagBehavior(config, self._wm)
+        else:
+            self._task_behavior = models.ImagBehavior(config, self._wm)
         if (
             config.compile and os.name != "nt"
         ):  # compilation is not supported on windows
@@ -80,7 +85,6 @@ class Dreamer(nn.Module):
                 self._logger.write(fps=True)
 
         policy_output, state, novelty_bound, (first, second, third) = self._policy(obs, state, training)
-        print(novelty_bound)
         novelty_bound = novelty_bound.int()
         self._logger.scalar('novelty_bound', float(np.mean(novelty_bound.cpu().numpy())))
         self._logger.scalar('first', float(np.mean(first.cpu().numpy())))
@@ -107,6 +111,13 @@ class Dreamer(nn.Module):
 
         kwargs = {}
         latent, _, novelty_bound, (first, second, third) = self._wm.dynamics.obs_step_with_bound(latent, action, embed, obs["is_first"])
+        
+        # try probabilistically sampling
+        # denom = second - third
+        # p_zero = torch.where(denom > 0, first / denom, torch.ones_like(first))
+        # p_zero = torch.clamp(p_zero, 0.0, 1.0)
+        # p = 1.0 - p_zero
+        # novelty_bound = torchd.Bernoulli(probs=p).sample().to(dtype=torch.bool)
         # if self._config.switch:
         #     latent, _, novelty_bound, (first, second, third) = self._wm.dynamics.obs_step_with_bound(latent, action, embed, obs["is_first"])
         # else:

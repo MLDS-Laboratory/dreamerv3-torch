@@ -68,7 +68,10 @@ class Logger:
         self.step = step
         self.output = config.output
         if config.output == 'wandb':
-            wandb.init(config=vars(config))
+            wandb.init(
+                project=config.project,
+                config=vars(config)
+            )
 
     def scalar(self, name, value):
         self._scalars[name] = float(value)

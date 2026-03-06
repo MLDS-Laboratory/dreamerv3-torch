@@ -65,8 +65,8 @@ env_configs = {
         "noise_spec": {
             'gaussian': {
                 'enable': True,
-                'actions': 0.5,
-                'observations': 0.5
+                'actions': 0.0,
+                'observations': 1.0
             }
         },
     },
@@ -76,9 +76,9 @@ env_configs = {
             "enable": True,
             "param": "shin_length",
             "scheduler": "constant",
-            "start": 4.0,
-            "min": 4.0,
-            "max": 4.0,
+            "start": 1.0,
+            "min": 1.0,
+            "max": 1.0,
             "std": 0,
         },
     },
